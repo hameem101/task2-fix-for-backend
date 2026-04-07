@@ -1,2 +1,4 @@
 to add the databse you will have to go on terminal and type this in what i wrote after the semi colon below
 hameemkhan@Hameems-MBP local retail new new %: python3 database_app.py
+
+When you run python3 database_app.py in the terminal, Python executes your file from top to bottom, and when it reaches sqlite3.connect("retail_system.db"), it checks if the database file exists—if it doesn’t, it automatically creates it; then your create_tables() function runs and creates the tables (categories, products, customers), and any sample data functions (like add_category, add_product, add_customer) insert data into those tables; once this process finishes, a new file called retail_system.db appears in your project folder, and in VS Code it shows up with a pink database icon, meaning your database has been successfully created and is ready to use.
