@@ -20,3 +20,6 @@ it will look something like this
 fetch("http://127.0.0.1:8000/customers", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(customerData) })
 This sends the customer data to your FastAPI app and receives a JSON response, completing the setup.
 this will be the finished outcome when finished properly 
+
+forgot to install fastAPI so you must do this:python3 -m pip install fastapi
+then run backend again: python3 -m uvicorn api_app:app --reload
