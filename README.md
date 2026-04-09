@@ -30,4 +30,12 @@ IMPORTANT NOTE if the pyton version does not work use BUT YOU MAY NOT NEED TO US
 from typing import Optional
 description: Optional[str] = None
 
+IMPORTANT NOTE: for app.js(javascript) you do not need to add anything else to the terminal.
+
+after installing uvicron it should pop up something like this:
+hameemkhan@Hameems-MBP localretailprototypenew % python3 -m uvicorn api_app:app --reload
+INFO:     Will watch for changes in these directories: ['/Users/hameemkhan/Desktop/localretailprototypenew']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [42671] using StatReload
+
 
