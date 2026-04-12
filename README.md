@@ -100,7 +100,84 @@ You do NOT need to install anything for app.js or fetch()
 If your Python version has issues with str | None, you can use:
 from typing import Optional
 description: Optional[str] = None
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+add orders 
+step 1:add order table (database_app.py)
+add this inside create_tables():
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY,
+    customer_id INTEGER,
+    product_id INTEGER,
+    quantity INTEGER,
+    created_at TEXT
+)
+""")
 
+step 2: add order function (database_app.py)
+add this under your other functions:
+def add_order(customer_id, product_id, quantity):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO orders (customer_id, product_id, quantity, created_at)
+        VALUES (?, ?, ?, ?)
+    """, (customer_id, product_id, quantity, datetime.now().isoformat()))
+
+    connection.commit()
+    connection.close()
+
+step 3: add API endpoint (api_app.py)
+class Order(BaseModel):
+    customer_id: int
+    product_id: int
+    quantity: int
+
+@app.post("/orders")
+def create_order(order: Order):
+    database_app.add_order(
+        order.customer_id,
+        order.product_id,
+        order.quantity
+    )
+    return {"message": "Order created"}
+
+step 4: add frontend button on HTML
+add this anywhere in your html on order section
+<h2>Create Order</h2>
+
+<input type="number" id="customerId" placeholder="Customer ID">
+<input type="number" id="productId" placeholder="Product ID">
+<input type="number" id="quantity" placeholder="Quantity">
+
+<button id="orderBtn">Place Order</button>
+
+step 5: add javascript
+const orderBtn = document.getElementById("orderBtn");
+
+orderBtn.addEventListener("click", function () {
+
+    const orderData = {
+        customer_id: document.getElementById("customerId").value,
+        product_id: document.getElementById("productId").value,
+        quantity: document.getElementById("quantity").value
+    };
+
+    fetch("http://127.0.0.1:8000/orders", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(orderData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Order placed successfully!");
+    })
+    .catch(error => console.error(error));
+
+});
 
 
 
