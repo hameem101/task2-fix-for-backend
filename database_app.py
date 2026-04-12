@@ -7,10 +7,11 @@ from datetime import datetime
 DB_NAME = "retail_system.db"
  
  
-def get_connection():
-    return sqlite3.connect(DB_NAME)
- 
 
+def get_connection():
+    conn = sqlite3.connect(DB_NAME)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 # create tables function - define primary keys, foreign keys and constraints
 
  
@@ -55,6 +56,16 @@ def create_tables():
     )
     """)
     
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY,
+        customer_id INTEGER,
+        product_id INTEGER,
+        quantity INTEGER,
+        created_at TEXT
+    )
+    """)
+
     connection.commit()
     connection.close()
 
@@ -109,6 +120,52 @@ def add_customer(email, first_name, last_name, city, country):
     connection.commit()
     connection.close()
 
+def add_order(customer_id, product_id, quantity):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Check if product exists and get stock
+    cursor.execute(
+        "SELECT stock FROM products WHERE id = ?",
+        (product_id,)
+    )
+    result = cursor.fetchone()
+
+    if not result:
+        connection.close()
+        raise Exception("Product not found")
+
+    stock = result[0]
+
+    # Check if enough stock
+    if quantity > stock:
+        connection.close()
+        raise Exception("Not enough stock")
+
+    # Insert order
+    cursor.execute(
+        """
+        INSERT INTO orders (customer_id, product_id, quantity, created_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        (customer_id, product_id, quantity, datetime.now().isoformat())
+    )
+
+    # Reduce stock
+    cursor.execute(
+        """
+        UPDATE products
+        SET stock = stock - ?
+        WHERE id = ?
+        """,
+        (quantity, product_id)
+    )
+
+    connection.commit()
+    connection.close()
+    
+        
+
 # Fetching data from all table - get categories, get products, get customers
 
 def get_categories():
@@ -134,20 +191,32 @@ def get_customers():
     connection.close()
     return data
 
-def get_products_with_categories():
+def get_products_with_categories(category_id=None):
     connection = get_connection()
     cursor = connection.cursor()
- 
-    cursor.execute("""
-    SELECT products.id,
-           products.name,
-           categories.name,
-           products.price,
-           products.stock
-    FROM products
-    JOIN categories ON products.category_id = categories.id
-    """)
- 
+
+    if category_id:
+        cursor.execute("""
+        SELECT products.id,
+               products.name,
+               categories.name,
+               products.price,
+               products.stock
+        FROM products
+        JOIN categories ON products.category_id = categories.id
+        WHERE products.category_id = ?
+        """, (category_id,))
+    else:
+        cursor.execute("""
+        SELECT products.id,
+               products.name,
+               categories.name,
+               products.price,
+               products.stock
+        FROM products
+        JOIN categories ON products.category_id = categories.id
+        """)
+
     data = cursor.fetchall()
     connection.close()
     return data
@@ -205,6 +274,10 @@ if __name__ == "__main__":
     add_product("vegan mince", 6, 3.00, 20, "vegan")
 
     add_product("bread", 7, 1.25, 150, "staples")
+    add_product("pasta", 7, 1.15, 150, "staples")
+    add_product("rice", 7, 2.25, 150, "staples")
+    add_product("flour", 7, 1.25, 150, "staples")
+
 
 
 
